@@ -1,5 +1,5 @@
-import argparse
-import copy
+import argparse #使程式執行時可帶參數
+import copy     #複製變數，使變數間獨立
 from datetime import datetime
 
 import numpy as np
@@ -126,28 +126,32 @@ class Experiment:
     def train(self, args):
 
         torch.cuda.set_device(args.gpu)
-
+        
+        ''' 'structure_refinement'&'structure_inference'差異在於是否有adj_original <- 原始結構圖 '''
         if args.gsl_mode == 'structure_refinement':
             features, nfeats, labels, nclasses, train_mask, val_mask, test_mask, adj_original = load_data(args)
         elif args.gsl_mode == 'structure_inference':
             features, nfeats, labels, nclasses, train_mask, val_mask, test_mask, _ = load_data(args)
-
+        #features:訓練特徵, nfeats:特徵數量, labels:標籤, nclasses:共有幾個類別, train_mask, val_mask, test_mask->遮罩們, adj:鄰接矩陣
+        
+        ''' 分為node classification & node clustering 兩種任務'''
         if args.downstream_task == 'classification':
             test_accuracies = []
             validation_accuracies = []
         elif args.downstream_task == 'clustering':
-            n_clu_trials = copy.deepcopy(args.ntrials)
+            n_clu_trials = copy.deepcopy(args.ntrials)  # ntrials? 分成幾群 ? or 進行幾輪 ?
             args.ntrials = 1
-
+        # deepcopy成不同變數，使變數間不會互相影響 
+        
         for trial in range(args.ntrials):
 
             self.setup_seed(trial)
 
             if args.gsl_mode == 'structure_inference':
-                if args.sparse:
+                if args.sparse:   # args.sparse default=0  輸入值為 True or False
                     anchor_adj_raw = torch_sparse_eye(features.shape[0])
                 else:
-                    anchor_adj_raw = torch.eye(features.shape[0])
+                    anchor_adj_raw = torch.eye(features.shape[0])   #生成對角線為1的矩陣
             elif args.gsl_mode == 'structure_refinement':
                 if args.sparse:
                     anchor_adj_raw = adj_original
@@ -288,8 +292,8 @@ if __name__ == '__main__':
     # Experimental setting
     parser.add_argument('-dataset', type=str, default='cora',
                         choices=['cora', 'citeseer', 'pubmed'])
-    parser.add_argument('-ntrials', type=int, default=5)
-    parser.add_argument('-sparse', type=int, default=0)
+    parser.add_argument('-ntrials', type=int, default=5) 
+    parser.add_argument('-sparse', type=int, default=0)   # args.sparse default=0  輸入值為 True or False ??
     parser.add_argument('-gsl_mode', type=str, default="structure_inference",
                         choices=['structure_inference', 'structure_refinement'])
     parser.add_argument('-eval_freq', type=int, default=5)
