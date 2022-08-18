@@ -166,7 +166,7 @@ class Experiment:
                 anchor_adj = torch_sparse_to_dgl_graph(anchor_adj)
 
             if args.type_learner == 'fgp':
-                graph_learner = FGP_learner(features.cpu(), args.k, args.sim_function, 6, args.sparse)
+                graph_learner = FGP_learner(features.cpu(), args.k, args.sim_function, 6, args.sparse)   # i=6，why?
             elif args.type_learner == 'mlp':
                 graph_learner = MLP_learner(2, features.shape[1], args.k, args.sim_function, 6, args.sparse,
                                      args.activation_learner)
