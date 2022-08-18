@@ -6,21 +6,21 @@ from layers import Attentive, GCNConv_dense, GCNConv_dgl
 from utils import *
 
 
-class FGP_learner(nn.Module):
-    def __init__(self, features, k, knn_metric, i, sparse):
+class FGP_learner(nn.Module):  
+    def __init__(self, features, k, knn_metric, i, sparse):    
         super(FGP_learner, self).__init__()
 
         self.k = k
-        self.knn_metric = knn_metric
+        self.knn_metric = knn_metric   #sim_function：['cosine', 'minkowski']
         self.i = i
         self.sparse = sparse
 
         self.Adj = nn.Parameter(
-            torch.from_numpy(nearest_neighbors_pre_elu(features, self.k, self.knn_metric, self.i)))
+            torch.from_numpy(nearest_neighbors_pre_elu(features, self.k, self.knn_metric, self.i)))    #初始透過KNN去計算相鄰的邊
 
     def forward(self, h):
         if not self.sparse:
-            Adj = F.elu(self.Adj) + 1
+            Adj = F.elu(self.Adj) + 1   #F.elu：activation function
         else:
             Adj = self.Adj.coalesce()
             Adj.values = F.elu(Adj.values()) + 1
